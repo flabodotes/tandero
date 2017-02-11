@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Tandero</string>
+    <string name="initRecord">COMENZAR</string>
+    <string name="goSettings">Ver ajustes</string>
+    <string name="showHistory">Historial</string>
+    <string name="gps">GPS</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="internet">Internet</string>
+
+    <string name="title_activity_settings">Settings</string>
+</resources>
