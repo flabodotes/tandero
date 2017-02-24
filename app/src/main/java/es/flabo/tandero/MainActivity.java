@@ -1,37 +1,52 @@
 package es.flabo.tandero;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
+import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
-
-    BluetoothAdapter bluetooth;
 
     @Override
     protected void onResume() {
         super.onResume();
         System.out.println("onResume");
 
-        TextView bluetoothStatus=(TextView)findViewById(R.id.bluetoothStatus);
-        if (bluetooth != null) {
-            if (!bluetooth.isEnabled()) {
+        //Bluetooth status
+        TextView bluetoothStatus = (TextView) findViewById(R.id.bluetoothStatus);
+        if (Common.getBluetooth() != null) {
+            if (!Common.getBluetooth().isEnabled()) {
                 bluetoothStatus.setText("OFF");
-            }else{
-                String mydevicename = bluetooth.getName();
-                bluetoothStatus.setText("ON - "+mydevicename);
-                getSynchronizedDevices();
+            } else {
+                bluetoothStatus.setText("ON");
             }
-        }else{
-            bluetoothStatus.setText("BT no disponible");
+        } else {
+            bluetoothStatus.setText("BT no compatible");
+        }
+
+        //GPS status
+        TextView gpsStatus = (TextView) findViewById(R.id.gpsStatus);
+        if (MiLocationListener.active) {
+            gpsStatus.setText("ON");
+        } else {
+            gpsStatus.setText("OFF");
         }
 
     }
@@ -40,14 +55,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         System.out.println("onCreate");
-        setContentView(R.layout.activity_main);
-        bluetooth = BluetoothAdapter.getDefaultAdapter();
-    }
 
-/*    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-    }*/
+        Common.setLocationManager((LocationManager) getSystemService(Context.LOCATION_SERVICE));
+
+        // Register the listener with the Location Manager to receive location updates
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            return;
+        } else {
+            Common.getLocationManager().requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, Common.getLocationListener());
+        }
+
+        setContentView(R.layout.activity_main);
+    }
 
     public void goToRecord(View view) {
         Intent intent = new Intent(this, Record.class);
@@ -64,27 +83,24 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
-    private void getSynchronizedDevices(){
-        System.out.println("getSynchronizedDevices");
-        Set<BluetoothDevice> pairedDevices = bluetooth.getBondedDevices();
-        // If there are paired devices
-        if (pairedDevices.size() > 0) {
-            // Loop through paired devices
-            for (BluetoothDevice device : pairedDevices) {
-                // Add the name and address to an array adapter to show in a ListView
-                System.out.println(device.getName() + " - " + device.getAddress());
-            }
-        }
-    }
-
-    private void connectToBT(BluetoothDevice device) {
+    @Override
+    protected void onDestroy() {
         try {
-//            UUID uuid = UUID.fromString("f05e00cf-3934-4ac5-afed-007c971ad9bc");
-//            BluetoothServerSocket socket = bluetooth.listenUsingInsecureRfcommWithServiceRecord("Tandero", uuid);
-
-        } catch (Exception ex) {
-
+            if ((Common.getBluetooth() != null) && Common.getBluetooth().isEnabled() && Common.getClientSocket()!=null) {
+                    Common.getClientSocket().close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+        }else {
+            System.out.println("GPS removed listener");
+            Common.getLocationManager().removeUpdates(Common.getLocationListener());
+        }
+
+        super.onStop();
     }
 }
