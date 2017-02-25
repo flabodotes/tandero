@@ -6,6 +6,7 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 
 /**
@@ -18,6 +19,7 @@ public class Common {
     private static BluetoothSocket clientSocket;
     private static LocationManager locationManager;
     private static LocationListener locationListener = new MiLocationListener();
+    private static ConnectivityManager connectivityManager;
 
     static {
         Common.bluetooth = BluetoothAdapter.getDefaultAdapter();
@@ -53,5 +55,13 @@ public class Common {
 
     public static void setLocationListener(LocationListener locationListener) {
         Common.locationListener = locationListener;
+    }
+
+    public static ConnectivityManager getConnectivityManager() {
+        return connectivityManager;
+    }
+
+    public static void setConnectivityManager(ConnectivityManager connectivityManager) {
+        Common.connectivityManager = connectivityManager;
     }
 }

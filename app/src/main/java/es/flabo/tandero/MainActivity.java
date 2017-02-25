@@ -11,9 +11,12 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -49,6 +52,21 @@ public class MainActivity extends AppCompatActivity {
             gpsStatus.setText("OFF");
         }
 
+        //Internet Status
+        NetworkInfo networkInfo = Common.getConnectivityManager().getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        boolean isWifiConn = networkInfo.isConnected();
+        networkInfo = Common.getConnectivityManager().getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        boolean isMobileConn = networkInfo.isConnected();
+        Log.d("NetworkStatusExample", "Wifi connected: " + isWifiConn);
+        Log.d("NetworkStatusExample", "Mobile connected: " + isMobileConn);
+
+        TextView netStatus = (TextView) findViewById(R.id.internetStatus);
+        if (isMobileConn || isWifiConn){
+            netStatus.setText("ON");
+        }else{
+            netStatus.setText("OFF");
+        }
+
     }
 
     @Override
@@ -64,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Common.getLocationManager().requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, Common.getLocationListener());
         }
+
+        Common.setConnectivityManager((ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE));
 
         setContentView(R.layout.activity_main);
     }
