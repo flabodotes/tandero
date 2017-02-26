@@ -16,13 +16,22 @@ import android.os.Bundle;
 public class Common {
 
     private static BluetoothAdapter bluetooth;
-    private static BluetoothSocket clientSocket;
-    private static LocationManager locationManager;
+    private static BluetoothSocket clientSocket=null;
+    private static boolean btConnected;
+    private static LocationManager locationManager=null;
     private static LocationListener locationListener = new MiLocationListener();
-    private static ConnectivityManager connectivityManager;
+    private static ConnectivityManager connectivityManager=null;
 
     static {
         Common.bluetooth = BluetoothAdapter.getDefaultAdapter();
+    }
+
+    public static boolean isBtConnected() {
+        return btConnected;
+    }
+
+    public static void setBtConnected(boolean btConnected) {
+        Common.btConnected = btConnected;
     }
 
     public static BluetoothAdapter getBluetooth() {
