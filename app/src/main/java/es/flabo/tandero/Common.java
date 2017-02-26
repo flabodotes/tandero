@@ -15,6 +15,7 @@ import android.os.Bundle;
 
 public class Common {
 
+    private static BTReader btReader=null;
     private static BluetoothAdapter bluetooth;
     private static BluetoothSocket clientSocket=null;
     private static boolean btConnected;
@@ -72,5 +73,13 @@ public class Common {
 
     public static void setConnectivityManager(ConnectivityManager connectivityManager) {
         Common.connectivityManager = connectivityManager;
+    }
+
+    public static BTReader getBtReader() {
+        return btReader;
+    }
+
+    public static void setBtReader(BTReader btReader) {
+        Common.btReader = btReader;
     }
 }
