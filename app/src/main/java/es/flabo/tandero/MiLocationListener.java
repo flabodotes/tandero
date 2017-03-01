@@ -1,8 +1,11 @@
 package es.flabo.tandero;
 
+import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.util.Log;
 
 /**
  * Created by Fou on 24/02/2017.
@@ -11,23 +14,32 @@ import android.os.Bundle;
 public class MiLocationListener implements LocationListener{
 
     public static boolean active=false;
+    private Context context;
+
+    public MiLocationListener(Context context){
+        System.out.println("=================================");
+        this.context=context;
+    }
 
     public void onLocationChanged(Location loc){
         MiLocationListener.active=true;
-        loc.getLatitude();
-        loc.getLongitude();
-        String coordenadas = this.toString()+" - GPS Latitud = " + loc.getLatitude() + " Longitud = " + loc.getLongitude();
-        System.out.println(coordenadas);
+        String data = "Vel="+loc.getSpeed()+" - GPS Latitud = " + loc.getLatitude() + " Longitud = " + loc.getLongitude();
+        Log.d("onLocationChanged",data);
+
+        Intent local = new Intent().setAction(Common.APP_NAME);
+        local.putExtra(Common.KEY_GPS_UPDATE, loc.getSpeed());
+        this.context.sendBroadcast(local);
     }
     public void onProviderDisabled(String provider){
-        System.out.println("GPS apagado");
+        Log.d("onProviderDisabled","GPS apagado");
         MiLocationListener.active=false;
+
     }
     public void onProviderEnabled(String provider){
-        System.out.println("GPS activado");
+        Log.d("onProviderEnabled","GPS encendido");
         MiLocationListener.active=true;
     }
     public void onStatusChanged(String provider, int status, Bundle extras){
-        System.out.println("GPS status changed");
+        Log.d("onStatusChanged","GPS status changed");
     }
 }

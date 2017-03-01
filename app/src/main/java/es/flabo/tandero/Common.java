@@ -15,12 +15,15 @@ import android.os.Bundle;
 
 public class Common {
 
+    public static String APP_NAME="es.flabo.tandero";
+    public static String KEY_GPS_UPDATE="UPDATE_GPS";
+
     private static BTReader btReader=null;
     private static BluetoothAdapter bluetooth;
     private static BluetoothSocket clientSocket=null;
     private static boolean btConnected;
     private static LocationManager locationManager=null;
-    private static LocationListener locationListener = new MiLocationListener();
+    private static LocationListener locationListener = null;
     private static ConnectivityManager connectivityManager=null;
 
     static {

@@ -1,15 +1,12 @@
 package es.flabo.tandero;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -20,17 +17,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Set;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
         super.onResume();
-        System.out.println("onResume");
 
         //Bluetooth status
         TextView bluetoothStatus = (TextView) findViewById(R.id.bluetoothStatus);
@@ -61,9 +54,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d("NetworkStatusExample", "Mobile connected: " + isMobileConn);
 
         TextView netStatus = (TextView) findViewById(R.id.internetStatus);
-        if (isMobileConn || isWifiConn){
+        if (isMobileConn || isWifiConn) {
             netStatus.setText("ON");
-        }else{
+        } else {
             netStatus.setText("OFF");
         }
 
@@ -72,20 +65,74 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        System.out.println("onCreate");
 
-        Common.setLocationManager((LocationManager) getSystemService(Context.LOCATION_SERVICE));
+        //INIT all the services and connections
 
-        // Register the listener with the Location Manager to receive location updates
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            return;
-        } else {
+        //GPS
+        if (Common.getLocationListener() == null) {
+            Log.d("onCreate", "Create location listener");
+            Common.setLocationListener(new MiLocationListener(this));
+        }
+
+        if (Common.getLocationManager() == null) {
+            Log.d("onCreate", "Init location manager");
+            Common.setLocationManager((LocationManager) getSystemService(Context.LOCATION_SERVICE));
+
+            //Check permissions and register listener
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                return;
+            }
             Common.getLocationManager().requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, Common.getLocationListener());
         }
 
-        Common.setConnectivityManager((ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE));
 
+        //Internet
+        if (Common.getConnectivityManager()==null) {
+            Common.setConnectivityManager((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE));
+        }
+
+        //Bluetooth
+
+        //If is not connected and is not trying it
+        if (!Common.isBtConnected() && Common.getBtReader()==null){
+            connectToArduino();
+        }
+
+        IntentFilter filter = new IntentFilter();
+
+        filter.addAction(Common.APP_NAME);
+
+        BroadcastReceiver updateUIReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String message = intent.getStringExtra(Common.KEY_GPS_UPDATE);
+                Log.d("receiver", "Got message: " + message);
+            }
+        };
+        registerReceiver(updateUIReceiver,filter);
+
+        //Display view
         setContentView(R.layout.activity_main);
+    }
+
+
+    private void connectToArduino(){
+        Log.d("connectToArduino", "Searching paired devices.");
+        Set<BluetoothDevice> pairedDevices = Common.getBluetooth().getBondedDevices();
+        // If there are paired devices
+        if (pairedDevices.size() > 0) {
+            // Loop through paired devices
+            for (BluetoothDevice device : pairedDevices) {
+                // Add the name and address to an array adapter to show in a ListView
+                Log.d("connectToArduino", "Devices:"+device.getName() + " - " + device.getAddress());
+                if (device.getName().contains("HC-06")){
+                    BTReader bluetoothReader = new BTReader(device);
+                    Common.setBtReader(bluetoothReader);
+                    bluetoothReader.start();
+                    break;
+                }
+            }
+        }
     }
 
     public void goToRecord(View view) {
@@ -112,6 +159,19 @@ public class MainActivity extends AppCompatActivity {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+
+        try {
+//            if (Common.getClientSocket()!=null) {
+//                Common.getClientSocket().close();
+//                Common.setClientSocket(null);
+//            }
+//            if(Common.getBluetooth()!=null) {
+//                Common.getBluetooth().disable();
+//                Common.setBluetooth(null);
+//            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

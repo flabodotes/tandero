@@ -23,9 +23,13 @@ public class BTReader extends Thread {
     public void run() {
         try {
             while (Common.getClientSocket()==null || !Common.getClientSocket().isConnected()){
-                Log.d("BTReader", "Connecting... ");
-                this.connectToBT();
-                Thread.currentThread().sleep(2000);
+                try{
+                    Log.d("BTReader", "Connecting... ");
+                    this.connectToBT();
+                    Thread.currentThread().sleep(3000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             if (Common.getClientSocket().isConnected()) {
@@ -51,7 +55,6 @@ public class BTReader extends Thread {
                         Log.d("BTReader", valid);
                         temp = temp.substring(pos + 1);
                     }
-
                 }
             }
 
