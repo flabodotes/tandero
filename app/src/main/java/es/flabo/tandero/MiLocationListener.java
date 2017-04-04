@@ -6,6 +6,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 /**
  * Created by Fou on 24/02/2017.
@@ -17,7 +18,6 @@ public class MiLocationListener implements LocationListener{
     private Context context;
 
     public MiLocationListener(Context context){
-        System.out.println("=================================");
         this.context=context;
     }
 
@@ -27,7 +27,8 @@ public class MiLocationListener implements LocationListener{
         Log.d("onLocationChanged",data);
 
         Intent local = new Intent().setAction(Common.APP_NAME);
-        local.putExtra(Common.KEY_GPS_UPDATE, loc.getSpeed());
+        local.putExtra(Common.KEY_GPS_UPDATE, loc.getLatitude());
+
         this.context.sendBroadcast(local);
     }
     public void onProviderDisabled(String provider){

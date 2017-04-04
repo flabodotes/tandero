@@ -37,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
             bluetoothStatus.setText("BT no compatible");
         }
 
+        Log.d("onResume", "bluetoothStatus: " + bluetoothStatus.getText());
+
         //GPS status
         TextView gpsStatus = (TextView) findViewById(R.id.gpsStatus);
         if (MiLocationListener.active) {
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             gpsStatus.setText("OFF");
         }
+        Log.d("onResume", "gpsStatus: " + gpsStatus.getText());
 
         //Internet Status
         NetworkInfo networkInfo = Common.getConnectivityManager().getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             netStatus.setText("OFF");
         }
-
+        Log.d("onResume", "netStatus: " + netStatus.getText());
     }
 
     @Override
@@ -94,22 +97,9 @@ public class MainActivity extends AppCompatActivity {
         //Bluetooth
 
         //If is not connected and is not trying it
-        if (!Common.isBtConnected() && Common.getBtReader()==null){
+        if (!Common.isBtConnected() && Common.getBtReader()==null) {
             connectToArduino();
         }
-
-        IntentFilter filter = new IntentFilter();
-
-        filter.addAction(Common.APP_NAME);
-
-        BroadcastReceiver updateUIReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String message = intent.getStringExtra(Common.KEY_GPS_UPDATE);
-                Log.d("receiver", "Got message: " + message);
-            }
-        };
-        registerReceiver(updateUIReceiver,filter);
 
         //Display view
         setContentView(R.layout.activity_main);
